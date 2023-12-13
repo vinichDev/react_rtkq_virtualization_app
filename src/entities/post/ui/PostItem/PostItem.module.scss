@@ -1,0 +1,16 @@
+.itemWrapper {
+  gap: 20px;
+  font: var(--font-l);
+  margin: 50px 50px;
+}
+
+.itemTextBlock {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemTitle {
+  font-weight: bold;
+  margin-right: 20px;
+}
