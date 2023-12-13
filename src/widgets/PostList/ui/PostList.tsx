@@ -37,7 +37,7 @@ const PostList = () => {
 
     useEffect(() => {
         if (canLoadMore && isLoadingMore) {
-            setOffset(state => state + postLimit);
+            setOffset(posts.length);
         }
     }, [isLoadingMore]);
 
