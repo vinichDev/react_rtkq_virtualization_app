@@ -1,51 +1,57 @@
 import React, {useEffect, useState} from "react";
-import {postLimit, postsCount, useFetchPostsQuery} from "entities/post";
+import {postLimit, useFetchPostsQuery} from "entities/post";
 import PostListView from "./PostListView";
 
 const PostList = () => {
-    const [currentPostStart, setCurrentPostStart] = useState(0);
+    const [offset, setOffset] = useState(0);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [canLoadMore, setCanLoadMore] = useState(true);
-    const [loadMore, setLoadMore] = useState(false);
 
-    const {data: posts, isLoading, isFetching} = useFetchPostsQuery({
-        limit: postLimit,
-        start: currentPostStart,
-    });
+    const {data = {posts: [], total: postLimit + 1}, isLoading, isFetching, refetch} = useFetchPostsQuery({
+            limit: postLimit,
+            start: offset,
+        },
+    );
+    const {posts, total} = data;
 
-    useEffect(() => {
-        if (canLoadMore && loadMore) {
-            setCurrentPostStart(posts?.length || 0);
-        }
-    }, [loadMore]);
-
-    useEffect(() => {
-        setLoadMore(false);
-        if (Array.isArray(posts) && posts.length === postsCount) {
-            setCanLoadMore(false);
-        }
-    }, [posts]);
-
-    useEffect(() => {
-        if (canLoadMore) {
-            document.addEventListener("scroll", scrollHandler);
-        } else {
-            document.removeEventListener("scroll", scrollHandler);
-        }
-        return () => {
-            document.removeEventListener("scroll", scrollHandler);
-        }
-
-    }, [canLoadMore]);
     const scrollHandler = (): void => {
         if (
+            !isLoadingMore && canLoadMore &&
             document.documentElement.scrollHeight -
             document.documentElement.scrollTop -
             window.innerHeight <
             50
         ) {
-            setLoadMore(true)
+            setIsLoadingMore(true);
         }
     };
+
+    useEffect(() => {
+        document.addEventListener("scroll", scrollHandler);
+
+        return () => {
+            document.removeEventListener("scroll", scrollHandler);
+        }
+
+    }, []);
+
+    useEffect(() => {
+        if (canLoadMore && isLoadingMore) {
+            setOffset(state => state + postLimit);
+        }
+    }, [isLoadingMore]);
+
+    useEffect(() => {
+        setIsLoadingMore(false);
+    }, [posts]);
+
+    useEffect(() => {
+        if (posts.length !== total) {
+            refetch();
+        } else {
+            setCanLoadMore(false);
+        }
+    }, [offset])
 
     return (
         <PostListView

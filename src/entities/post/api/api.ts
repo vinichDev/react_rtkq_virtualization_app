@@ -3,27 +3,30 @@ import {IPost, IPostQueryArgs, IPostsQueryArgs, postLimit, postsCount} from "../
 
 export const postsApi = baseApi.injectEndpoints({
     endpoints: build => ({
-        fetchPosts: build.query<IPost[], IPostsQueryArgs>({
+        fetchPosts: build.query<{ posts: IPost[], total: number }, IPostsQueryArgs>({
             query: ({start = 0, limit = postLimit}) => ({
                 url: '/posts',
                 params:
                     {
                         _limit: limit,
                         _start: start,
-                    }
+                    },
+
             }),
+            transformResponse: (response: IPost[]) => {
+                return {
+                    posts: response,
+                    total: postsCount,
+                };
+            },
             serializeQueryArgs: ({endpointName}) => {
                 return endpointName
             },
             merge: (currentCache, newItems, {arg}) => {
-                console.log(arg.start)
                 if (arg.start > 0) {
-                    currentCache.push(...newItems)
+                    currentCache.posts.push(...newItems.posts)
                 }
                 return currentCache;
-            },
-            forceRefetch({ currentArg, previousArg }) {
-                return previousArg?.start !== postsCount - postLimit;
             },
         }),
         fetchPost: build.query<IPost, IPostQueryArgs>({

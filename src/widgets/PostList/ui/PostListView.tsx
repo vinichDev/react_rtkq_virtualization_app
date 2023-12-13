@@ -23,7 +23,7 @@ const PostListView: FC<IProps> = ({posts, isLoading, isFetching}) => {
                 />
             )}
             loading={isLoading}
-            footer={isFetching ? <Loader/> : null}
+            footer={isFetching && !isLoading ? <Loader/> : null}
         />
     );
 };
